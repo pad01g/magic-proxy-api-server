@@ -3,7 +3,7 @@ services:
   app:
     env_file:
       - .env
-    container_name: awesome_nest_boilerplate
+    container_name: magic-proxy-admin-server
     restart: always
     build: .
     ports:
