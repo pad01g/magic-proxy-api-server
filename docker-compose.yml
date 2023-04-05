@@ -9,34 +9,43 @@ services:
     ports:
       - "$PORT:$PORT"
     links:
-      - postgres
-  postgres:
-    image: postgres
-    container_name: postgres
+      - mysql
+    environment:
+      DB_HOST: mysql
+  mysql:
+    image: mysql
+    command: --default-authentication-plugin=mysql_native_password
+    container_name: mysql
     restart: always
     environment:
-      POSTGRES_PASSWORD: postgres
-      TZ: 'GMT'
-      PGTZ: 'GMT'
+      ## Note: all of these environment variables can also be loaded from .env
+
+      MYSQL_DATABASE: '${DB_DATABASE}'
+      # So you don't have to use root, but you can if you like
+      MYSQL_USER: '${DB_USERNAME}'
+      # You can use whatever password you like
+      MYSQL_PASSWORD: '${DB_PASSWORD}'
+      # Password for root access
+      MYSQL_ROOT_PASSWORD: '${DB_ROOT_PASSWORD}'
+      # Good for testing, but not production
+      MYSQL_ALLOW_EMPTY_PASSWORD: '${DB_ALLOW_EMPTY_PASSWORD}'
+
     ports:
-      - "5432:5432"
+      # <Port exposed> : < MySQL Port running inside container>
+      # default is:
+      #- '3306:3306'
+      - '${DB_PORT}:${DB_PORT}'
+    expose:
+      # Opens port 3306 on the container
+      # default is:
+      #- '3306'
+      - '${DB_PORT}'
+      # Where our data will be persisted
     volumes:
-      - postgres:/data/postgres
-      - ./init-data.sh:/docker-entrypoint-initdb.d/init-data.sh
+      - mysql:/data/mysql
     env_file:
       - .env
-  pgadmin:
-    container_name: pgadmin
-    image: dpage/pgadmin4
-    ports:
-      - "8080:80"
-    volumes:
-      - /data/pgadmin:/root/.pgadmin
-    env_file:
-      - .env
-    links:
-      - postgres
 
 volumes:
-  postgres:
+  mysql:
     driver: local
