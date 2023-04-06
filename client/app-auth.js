@@ -1,11 +1,16 @@
-// ethers, Magic are loaded
+// ethers, Magic, MagicOAuthExtension are loaded
 const apiKey = 'pk_live_581C324CA3D5A249'
 const infuraKey = '4026a8ce431c497a816b8bffeeb07eee'
 const network = {
     rpcUrl: `https://sepolia.infura.io/v3/${infuraKey}`,
     chainId: "11155111"
 }
-const magic = new Magic(apiKey, {network});
+const endpoint = location.protocol + '//' + location.host
+const magic = new Magic(apiKey, {
+    network,
+    // endpoint,
+    extensions: [new MagicOAuthExtension()],
+});
 const provider = new ethers.providers.Web3Provider(magic.rpcProvider);
 
 window.magic = magic
@@ -29,15 +34,28 @@ const login = async () => {
     console.log({result})
 
     if(result){
-        const params = new URL(location.toString()).searchParams;
-        const credentialFromURL = params.get('magic_credential');
-        const credentialFromLocalStorage = localStorage.getItem('magic_credential');
-        await loginCallBack(credentialFromURL, credentialFromLocalStorage);
+        await loginCallBack();
+    }else{
+        console.log(`login failed`)
     }
 }
 
+const loginOauthGithub = async () => {
+    await magic.oauth.loginWithRedirect({
+        provider: 'github' /* 'google', 'facebook', 'apple', or 'github' */,
+        redirectURI: location.toString(),
+        scope: ['user:email'] /* optional */,
+    });
+}
+
+const loginOauthGitlab = async () => {
+    await magic.oauth.loginWithRedirect({
+        provider: 'gitlab' /* 'google', 'facebook', 'apple', or 'github' */,
+        redirectURI: location.toString(),
+    });
+}
+
 const clearCredential = async () => {
-    localStorage.removeItem('magic_credential');
     const isLoggedIn = await magic.user.isLoggedIn();
     console.log({isLoggedIn})
     const transferURL = location.toString().replace(location.search, "");
@@ -76,12 +94,8 @@ const transfer = async () => {
     elem("eth_receipt_transfer").innerText = JSON.stringify(receipt, null, 2);
 }
 
-const loginCallBack = async (credentialFromURL, credentialFromLocalStorage) => {
-    if(credentialFromURL && !credentialFromLocalStorage){
-        localStorage.setItem('magic_credential', credentialFromURL);
-    }
+const loginCallBack = async () => {
     elem("login_status").innerText = "logged in"
-    addCallback("clear_credential", "click", clearCredential)
 
     elem("metadata").innerText = JSON.stringify(await magic.user.getMetadata(),null,2);
 
@@ -103,38 +117,49 @@ const loginCallBack = async (credentialFromURL, credentialFromLocalStorage) => {
 
     // transfer
     addCallback("transfer", "click", transfer)
+    addCallback("clear_credential", "click", clearCredential)
 }
 
 const main = async () => {
 
     magic.preload().then(() => console.log('Magic <iframe> loaded.'));
 
-    try {
-        console.log(window.location.search)
-        const params = new URL(location.toString()).searchParams;
-        const credentialFromURL = params.get('magic_credential');
-        const credentialFromLocalStorage = localStorage.getItem('magic_credential');
-        const credential = credentialFromURL ?? credentialFromLocalStorage;
-        console.log(credentialFromURL, credentialFromLocalStorage, credential)
+    const params = new URL(location.toString()).searchParams;
+    const credentialFromURL = params.get('magic_credential');
+    console.log(credentialFromURL)
 
-        if(!credential){
-            throw new Error("no credentials found")
-        }
-
-        await magic.auth.loginWithCredential(credential);
-
-        console.log("successfully logged in.")
+    try{
+        const result = await magic.oauth.getRedirectResult();
+        console.log("successfully logged in by oauth.", result)
+        elem("oauth_metadata").innerText = JSON.stringify(result,null,2);
 
         // this is callback context
-        await loginCallBack(credentialFromURL, credentialFromLocalStorage);
+        await loginCallBack();
 
     }catch(e){
+        console.log(`not a redirect result from oauth login, continue to email login`, e)
+        try {
 
-        console.log("credential not found. now let's try to login using email. "+ e)
-        localStorage.removeItem('magic_credential');
-        // enable login button
-        addCallback("login", "click", login)
-        elem("login_status").innerText = "not logged in"
+            if(!credentialFromURL){
+                throw new Error("no credentials found")
+            }
+
+            await magic.auth.loginWithCredential(credentialFromURL);
+
+            console.log("successfully logged in.")
+
+            // this is callback context
+            await loginCallBack();
+
+        }catch(e){
+
+            console.log("credential not found. now let's try to login using email. "+ e)
+            // enable login button
+            addCallback("login", "click", login)
+            addCallback("login_oauth_github", "click", loginOauthGithub)
+            addCallback("login_oauth_gitlab", "click", loginOauthGitlab)
+            elem("login_status").innerText = "not logged in"
+        }
     }
 }
 

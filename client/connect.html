@@ -3,17 +3,9 @@
         <title>magic test</title>
     </head>
     <body>
-        <div id="login_status"></div>
-        <label for="email">email</label>
-        <input type="text" id="email" name="email" value="mubreloitoivou-5310@yopmail.com"/>
-        <button id="login">login</button>
-        <button id="login_oauth_github">login_oauth_github</button>
-        <button id="login_oauth_gitlab">login_oauth_gitlab</button>
+        <div id="connect_status"></div>
+        <button id="connect">connect</button>
         <button id="clear_credential">clear</button>
-        <p>oauth_metadata</p>
-        <pre id="oauth_metadata"></pre>
-        <p>metadata</p>
-        <pre id="metadata"></pre>
         <p>wallet_balance</p>
         <p id="wallet_balance"></p>
 
@@ -24,9 +16,12 @@
         <button id="transfer">transfer</button>
         <pre id="eth_receipt_transfer"></pre>
 
+        <pre id="accounts"></pre>
+        <button id="request_email">request email</button>
+        <p id="email"></p>
+
         <script src="https://cdn.jsdelivr.net/npm/magic-sdk/dist/magic.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/@magic-ext/oauth/dist/extension.min.js"></script>
         <script src="https://cdn.ethers.io/scripts/ethers-v4.min.js"></script>
-        <script type="module" src="./app-auth.js" ></script>
+        <script type="module" src="./app-connect.js" ></script>
     </body>
 </html>
