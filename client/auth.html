@@ -7,7 +7,11 @@
         <label for="email">email</label>
         <input type="text" id="email" name="email" value="mubreloitoivou-5310@yopmail.com"/>
         <button id="login">login</button>
+        <button id="login_oauth_github">login_oauth_github</button>
+        <button id="login_oauth_gitlab">login_oauth_gitlab</button>
         <button id="clear_credential">clear</button>
+        <p>oauth_metadata</p>
+        <pre id="oauth_metadata"></pre>
         <p>metadata</p>
         <pre id="metadata"></pre>
         <p>wallet_balance</p>
@@ -21,7 +25,8 @@
         <pre id="eth_receipt_transfer"></pre>
 
         <script src="https://cdn.jsdelivr.net/npm/magic-sdk/dist/magic.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@magic-ext/oauth/dist/extension.min.js"></script>
         <script src="https://cdn.ethers.io/scripts/ethers-v4.min.js"></script>
-        <script type="module" src="./app.js" ></script>
+        <script type="module" src="./app-auth.js" ></script>
     </body>
 </html>
