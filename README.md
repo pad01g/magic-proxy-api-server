@@ -1,6 +1,6 @@
 # what is this
 
-poc server implementation for magic-proxy admin server
+poc server implementation for magic-proxy api server
 
 # requirements
 

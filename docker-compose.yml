@@ -3,7 +3,7 @@ services:
   app:
     env_file:
       - .env
-    container_name: magic-proxy-admin-server
+    container_name: magic-proxy-api-server
     restart: always
     build: .
     ports:

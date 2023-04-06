@@ -68,9 +68,9 @@ export class PostService {
       throw new PostNotFoundException();
     }
 
-    this.postRepository.merge(postEntity, updatePostDto);
+    const updatedEntity = this.postRepository.merge(postEntity, updatePostDto);
 
-    await this.postRepository.save(updatePostDto);
+    await this.postRepository.save(updatedEntity);
   }
 
   async deletePost(id: Uuid): Promise<void> {
