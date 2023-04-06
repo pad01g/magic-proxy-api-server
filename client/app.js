@@ -1,6 +1,12 @@
 // ethers, Magic are loaded
 const apiKey = 'pk_live_581C324CA3D5A249'
-const magic = new Magic(apiKey);
+const infuraKey = '4026a8ce431c497a816b8bffeeb07eee'
+const network = {
+    rpcUrl: `https://sepolia.infura.io/v3/${infuraKey}`,
+    chainId: "11155111"
+}
+const magic = new Magic(apiKey, {network});
+const provider = new ethers.providers.Web3Provider(magic.rpcProvider);
 
 const elem = (id) => {
     return document.getElementById(id)
@@ -38,6 +44,27 @@ const clearCredential = async () => {
     }
 }
 
+const transfer = async () => {
+    const ethAmountTransfer = elem("eth_amount_transfer").value
+    const ethAddressTransfer = elem("eth_address_transfer").value
+
+    const destination = ethAddressTransfer;
+    const amount = ethers.utils.parseEther(ethAmountTransfer); // Convert 1 ether to wei
+    
+    const signer = provider.getSigner();
+    console.log({signer})
+
+    // Submit transaction to the blockchain
+    const tx = await signer.sendTransaction({
+      to: destination,
+      value: amount,
+    });
+    
+    // Wait for transaction to be mined
+    const receipt = await tx.wait();
+    elem("eth_receipt_transfer").innerText = JSON.stringify(receipt, null, 2);
+}
+
 const main = async () => {
 
     magic.preload().then(() => console.log('Magic <iframe> loaded.'));
@@ -64,9 +91,29 @@ const main = async () => {
 
         elem("metadata").innerText = JSON.stringify(await magic.user.getMetadata(),null,2);
 
+        // related to wallet
+        const signer = provider.getSigner();
+        console.log({signer})
+
+        // Get user's Ethereum public address
+        const address = await signer.getAddress();
+        console.log({address})
+
+        // Get user's balance in ether
+        const balance = ethers.utils.formatEther(
+            await provider.getBalance(address), // Balance is in wei
+        );
+        console.log({balance})
+
+        elem("wallet_balance").innerText = balance
+
+        // transfer
+        addCallback("transfer", "click", transfer)
+
     }catch(e){
 
         console.log("credential not found. now let's try to login using email."+ e)
+        localStorage.removeItem('magic_credential');
         // enable login button
         addCallback("login", "click", login)
         elem("login_status").innerText = "not logged in"

@@ -5,10 +5,21 @@
     <body>
         <div id="login_status"></div>
         <label for="email">email</label>
-        <input type="text" id="email" name="email" value="propreuwoudeiprou-8539@yopmail.com"/>
+        <input type="text" id="email" name="email" value="mubreloitoivou-5310@yopmail.com"/>
         <button id="login">login</button>
         <button id="clear_credential">clear</button>
+        <p>metadata</p>
         <pre id="metadata"></pre>
+        <p>wallet_balance</p>
+        <p id="wallet_balance"></p>
+
+        <label for="eth_amount_transfer">eth amount to transfer</label>
+        <input type="text" id="eth_amount_transfer" name="eth_amount_transfer" value="0.00001"/>
+        <label for="eth_address_transfer">eth address to transfer</label>
+        <input type="text" id="eth_address_transfer" name="eth_address_transfer" value="0x231d51dbeC6E3E63Ad22078C73B70fBfD1b14265"/>
+        <button id="transfer">transfer</button>
+        <pre id="eth_receipt_transfer"></pre>
+
         <script src="https://cdn.jsdelivr.net/npm/magic-sdk/dist/magic.js"></script>
         <script src="https://cdn.ethers.io/scripts/ethers-v4.min.js"></script>
         <script type="module" src="./app.js" ></script>
