@@ -1,3 +1,4 @@
+import { Magic } from '@magic-sdk/admin';
 import {
   Body,
   Controller,
@@ -24,10 +25,14 @@ import { UserRegisterDto } from './dto/UserRegisterDto';
 @Controller('auth')
 @ApiTags('auth')
 export class AuthController {
+  private mAdmin: Magic;
+
   constructor(
     private userService: UserService,
     private authService: AuthService,
-  ) {}
+  ) {
+    this.mAdmin = new Magic('pk_live_581C324CA3D5A249');
+  }
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
@@ -56,6 +61,14 @@ export class AuthController {
     @Body() userRegisterDto: UserRegisterDto,
     @UploadedFile() file?: IFile,
   ): Promise<UserDto> {
+    const didToken = '';
+    // who is issued did
+    // const issuer = this.mAdmin.token.getIssuer(didToken);
+    // save address to magic too
+    // const publicAddress = this.mAdmin.token.getPublicAddress(didToken);
+    // valid did token?
+    this.mAdmin.token.validate(didToken);
+
     const createdUser = await this.userService.createUser(
       userRegisterDto,
       file,
