@@ -8,6 +8,9 @@ const network = {
 const magic = new Magic(apiKey, {network});
 const provider = new ethers.providers.Web3Provider(magic.rpcProvider);
 
+window.magic = magic
+window.provider = provider
+
 const elem = (id) => {
     return document.getElementById(id)
 }
@@ -15,14 +18,22 @@ const addCallback = (id, event, callback) => {
     elem(id).addEventListener(event, callback);
 }
 
-const login = () => {
+const login = async () => {
     const email = elem("email").value
 
-    magic.auth.loginWithMagicLink({
+    const result = await magic.auth.loginWithMagicLink({
         email: email,
         showUI: true,
         redirectURI: location.toString()
     });
+    console.log({result})
+
+    if(result){
+        const params = new URL(location.toString()).searchParams;
+        const credentialFromURL = params.get('magic_credential');
+        const credentialFromLocalStorage = localStorage.getItem('magic_credential');
+        await loginCallBack(credentialFromURL, credentialFromLocalStorage);
+    }
 }
 
 const clearCredential = async () => {
@@ -59,10 +70,39 @@ const transfer = async () => {
       to: destination,
       value: amount,
     });
-    
+
     // Wait for transaction to be mined
     const receipt = await tx.wait();
     elem("eth_receipt_transfer").innerText = JSON.stringify(receipt, null, 2);
+}
+
+const loginCallBack = async (credentialFromURL, credentialFromLocalStorage) => {
+    if(credentialFromURL && !credentialFromLocalStorage){
+        localStorage.setItem('magic_credential', credentialFromURL);
+    }
+    elem("login_status").innerText = "logged in"
+    addCallback("clear_credential", "click", clearCredential)
+
+    elem("metadata").innerText = JSON.stringify(await magic.user.getMetadata(),null,2);
+
+    // related to wallet
+    const signer = provider.getSigner();
+    console.log({signer})
+
+    // Get user's Ethereum public address
+    const address = await signer.getAddress();
+    console.log({address})
+
+    // Get user's balance in ether
+    const balance = ethers.utils.formatEther(
+        await provider.getBalance(address), // Balance is in wei
+    );
+    console.log({balance})
+
+    elem("wallet_balance").innerText = balance
+
+    // transfer
+    addCallback("transfer", "click", transfer)
 }
 
 const main = async () => {
@@ -77,42 +117,20 @@ const main = async () => {
         const credential = credentialFromURL ?? credentialFromLocalStorage;
         console.log(credentialFromURL, credentialFromLocalStorage, credential)
 
+        if(!credential){
+            throw new Error("no credentials found")
+        }
+
         await magic.auth.loginWithCredential(credential);
 
         console.log("successfully logged in.")
 
         // this is callback context
-
-        if(credentialFromURL && !credentialFromLocalStorage){
-            localStorage.setItem('magic_credential', credentialFromURL);
-        }
-        elem("login_status").innerText = "logged in"
-        addCallback("clear_credential", "click", clearCredential)
-
-        elem("metadata").innerText = JSON.stringify(await magic.user.getMetadata(),null,2);
-
-        // related to wallet
-        const signer = provider.getSigner();
-        console.log({signer})
-
-        // Get user's Ethereum public address
-        const address = await signer.getAddress();
-        console.log({address})
-
-        // Get user's balance in ether
-        const balance = ethers.utils.formatEther(
-            await provider.getBalance(address), // Balance is in wei
-        );
-        console.log({balance})
-
-        elem("wallet_balance").innerText = balance
-
-        // transfer
-        addCallback("transfer", "click", transfer)
+        await loginCallBack(credentialFromURL, credentialFromLocalStorage);
 
     }catch(e){
 
-        console.log("credential not found. now let's try to login using email."+ e)
+        console.log("credential not found. now let's try to login using email. "+ e)
         localStorage.removeItem('magic_credential');
         // enable login button
         addCallback("login", "click", login)
