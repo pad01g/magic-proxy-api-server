@@ -94,6 +94,28 @@ const transfer = async () => {
     elem("eth_receipt_transfer").innerText = JSON.stringify(receipt, null, 2);
 }
 
+const transferContract = async () => {
+    const ethAmountTransfer = elem("eth_amount_transfer").value
+    const ethAddressTransfer = elem("eth_address_transfer").value
+
+    const destination = ethAddressTransfer;
+    const amount = ethers.utils.parseEther(ethAmountTransfer); // Convert 1 ether to wei
+    
+    const signer = provider.getSigner();
+    console.log({signer})
+
+    // Submit transaction to the blockchain
+    const tx = await signer.sendTransaction({
+      to: destination,
+      value: 0,
+      data: "0x6a627842" + "000000000000000000000000231d51dbeC6E3E63Ad22078C73B70fBfD1b14265",
+    });
+
+    // Wait for transaction to be mined
+    const receipt = await tx.wait();
+    elem("eth_receipt_transfer").innerText = JSON.stringify(receipt, null, 2);
+}
+
 const loginCallBack = async () => {
     elem("login_status").innerText = "logged in"
 
@@ -117,6 +139,7 @@ const loginCallBack = async () => {
 
     // transfer
     addCallback("transfer", "click", transfer)
+    addCallback("transfer_contract", "click", transferContract)
     addCallback("clear_credential", "click", clearCredential)
 }
 
