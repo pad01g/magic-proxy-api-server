@@ -163,12 +163,14 @@ const main = async () => {
         console.log(`not a redirect result from oauth login, continue to email login`, e)
         try {
 
-            if(!credentialFromURL){
-                throw new Error("no credentials found")
+            if(await magic.user.isLoggedIn()){
+                // continue
+            }else{
+                if(!credentialFromURL){
+                    throw new Error("no credentials found")
+                }
+                await magic.auth.loginWithCredential(credentialFromURL);    
             }
-
-            await magic.auth.loginWithCredential(credentialFromURL);
-
             console.log("successfully logged in.")
 
             // this is callback context
